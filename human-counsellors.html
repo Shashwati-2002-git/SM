@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Our Counsellors</title>
+  <link rel="stylesheet" href="styles/header.css">
+  <link rel="stylesheet" href="styles/professionals.css">
+  <link rel="stylesheet" href="styles/footer.css">
+</head>
+<body>
+  <div id="header"></div>
+
+  <div id="counsellors" class="pro-container"></div>
+
+  <div id="footer"></div>
+
+  <script>
+    async function loadComponent(id, file) {
+      const res = await fetch(file);
+      document.getElementById(id).innerHTML = await res.text();
+
+      if (id === "header") {
+        const script = document.createElement("script");
+        script.src = "header.js";
+        script.onload = () => {
+          if (window.updateHeader) window.updateHeader();
+        };
+        document.body.appendChild(script);
+      }
+    }
+
+    loadComponent("header", "header.html");
+    loadComponent("footer", "footer.html");
+
+    // Fetch counsellors
+    async function loadCounsellors() {
+      try {
+        const res = await fetch("/api/counsellors");
+        const counsellors = await res.json();
+
+        const container = document.getElementById("counsellors");
+        container.innerHTML = counsellors.map(c => `
+          <div class="pro-card">
+            <img src="/images/${c.HC_Profile_URL}" alt="${c.HC_Name}">
+            <h3>${c.HC_Name}</h3>
+            <p>${c.HC_Desc}</p>
+            <p class="timing"><strong>Weekdays:</strong> ${c.HC_WD_Timing}</p>
+            <p class="timing"><strong>Sunday:</strong> ${c.HC_SD_Timing}</p>
+            <button class="view-profile-btn" onclick="viewProfile(${c.HC_ID})">View Profile</button>
+          </div>
+        `).join("");
+      } catch (err) {
+        console.error("Error loading counsellors:", err);
+      }
+    }
+
+    function viewProfile(id) {
+      window.location.href = `counsellor-profile.html?hc_id=${id}`;
+    }
+
+    loadCounsellors();
+  </script>
+</body>
+</html>

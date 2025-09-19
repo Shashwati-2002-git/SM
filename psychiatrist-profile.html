@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Psychiatrist Profile</title>
+  <link rel="stylesheet" href="styles/header.css">
+  <link rel="stylesheet" href="styles/professional-profile.css">
+  <link rel="stylesheet" href="styles/footer.css">
+</head>
+<body>
+  <div id="header"></div>
+
+  <main class="profile-container">
+    <div id="profile"></div>
+  </main>
+
+  <div id="footer"></div>
+
+  <script src="header.js" defer></script>
+  <script>
+    async function loadComponent(id, file) {
+      const res = await fetch(file);
+      document.getElementById(id).innerHTML = await res.text();
+
+      if (id === "header") {
+        const script = document.createElement("script");
+        script.src = "header.js";
+        document.body.appendChild(script);
+      }
+    }
+    loadComponent("header", "header.html");
+    loadComponent("footer", "footer.html");
+
+    // Get ID from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const proId = urlParams.get("id");
+
+    // Fetch and render profile
+    async function loadProfile() {
+      try {
+        const res = await fetch(`/api/professional/${proId}`);
+        if (!res.ok) throw new Error("Failed to fetch profile");
+        const pro = await res.json();
+
+        document.getElementById("profile").innerHTML = `
+          <div class="profile-card">
+            <img src="/images/${pro.HP_Profile_URL}" alt="${pro.HP_Name}" class="profile-img">
+            <h2>${pro.HP_Name}</h2>
+            <p class="desc">${pro.HP_Desc}</p>
+            <p><strong>Specialization:</strong> ${pro.HP_Sp_Field}</p>
+            <p><strong>Weekdays:</strong> ${pro.WD_Timing}</p>
+            <p><strong>Sunday:</strong> ${pro.SD_Timing}</p>
+            
+            <div class="profile-actions">
+              <button class="msg-btn">💬 Message</button>
+              <button class="appt-btn">📅 Schedule Appointment</button>
+            </div>
+          </div>
+        `;
+        // Now attach listeners
+        document.getElementById("msgBtn").addEventListener("click", () => {
+        alert("Open chat with " + pro.HP_Name);
+        });
+
+        document.getElementById("apptBtn").addEventListener("click", () => {
+        alert("Schedule appointment with " + pro.HP_Name);
+        });
+      } catch (err) {
+        document.getElementById("profile").innerHTML = `<p>⚠️ Could not load profile.</p>`;
+      }
+    }
+
+    loadProfile();
+  </script>
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Our Professionals</title>
+  <link rel="stylesheet" href="styles/header.css">
+  <link rel="stylesheet" href="styles/professionals.css">
+  <link rel="stylesheet" href="styles/footer.css">
+</head>
+<body>
+  <div id="header"></div>
+
+  <div id="professionals" class="pro-container"></div>
+
+  <div id="footer"></div>
+
+  <script src="header.js" defer></script>
+
+  <script>
+      async function loadComponent(id, file) {
+          const res = await fetch(file);
+          document.getElementById(id).innerHTML = await res.text();
+
+          // If header loaded, attach header.js
+          if (id === "header") {
+            const script = document.createElement("script");
+            script.src = "header.js";
+            script.onload = () => {
+              if (window.updateHeader) window.updateHeader();
+            };
+            document.body.appendChild(script);
+          }
+        }
+
+        loadComponent("header", "header.html");
+        loadComponent("footer", "footer.html");
+
+    // Fetch professionals
+    async function loadProfessionals() {
+      try {
+        const res = await fetch("/api/professionals");
+        const professionals = await res.json();
+
+        const container = document.getElementById("professionals");
+        container.innerHTML = professionals.map(pro => `
+          <div class="pro-card">
+            <img src="/images/${pro.HP_Profile_URL}" alt="${pro.HP_Name}">
+            <h3>${pro.HP_Name}</h3>
+            <p><strong>Specialization:</strong> ${pro.HP_Sp_Field}</p>
+            <p class="timing"><strong>Weekdays:</strong> ${pro.WD_Timing}</p>
+            <p class="timing"><strong>Sunday:</strong> ${pro.SD_Timing}</p>
+            <button class="view-profile-btn" onclick="viewProfile(${pro.HP_ID})">View Profile</button>
+          </div>
+        `).join("");
+      } catch (err) {
+        console.error("Error loading professionals:", err);
+      }
+    }
+
+    // Redirect to psychiatrist-profile page with ID
+    function viewProfile(id) {
+      window.location.href = `psychiatrist-profile.html?id=${id}`;
+    }
+
+    loadProfessionals();
+  </script>
+</body>
+</html>

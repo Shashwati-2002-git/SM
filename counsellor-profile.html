@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Counsellor Profile</title>
+  <link rel="stylesheet" href="styles/header.css">
+  <link rel="stylesheet" href="styles/professional-profile.css">
+  <link rel="stylesheet" href="styles/footer.css">
+</head>
+<body>
+  <div id="header"></div>
+
+  <main class="profile-container">
+    <div id="profile"></div>
+  </main>
+
+  <div id="footer"></div>
+
+  <script src="header.js" defer></script>
+  <script>
+    async function loadComponent(id, file) {
+      const res = await fetch(file);
+      document.getElementById(id).innerHTML = await res.text();
+
+      if (id === "header") {
+        const script = document.createElement("script");
+        script.src = "header.js";
+        document.body.appendChild(script);
+      }
+    }
+    loadComponent("header", "header.html");
+    loadComponent("footer", "footer.html");
+
+    // Get ID from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const hcId = urlParams.get("hc_id");
+
+    // Fetch and render profile
+    async function loadProfile() {
+      try {
+        const res = await fetch(`/api/counsellor/${hcId}`);
+        if (!res.ok) throw new Error("Failed to fetch counsellor profile");
+        const c = await res.json();
+
+        document.getElementById("profile").innerHTML = `
+          <div class="profile-card">
+            <img src="/images/${c.HC_Profile_URL}" alt="${c.HC_Name}" class="profile-img">
+            <h2>${c.HC_Name}</h2>
+            <p class="desc">${c.HC_Desc}</p>
+            <p><strong>Specialization:</strong> ${c.HC_Sp_Field}</p>
+            <p><strong>Weekdays:</strong> ${c.HC_WD_Timing}</p>
+            <p><strong>Sunday:</strong> ${c.HC_SD_Timing}</p>
+            
+            <div class="profile-actions">
+              <button id="msgBtn" class="msg-btn">💬 Message</button>
+              <button id="apptBtn" class="appt-btn">📅 Schedule Appointment</button>
+            </div>
+          </div>
+        `;
+
+        // Attach listeners safely
+        document.getElementById("msgBtn").addEventListener("click", () => {
+          alert("Open chat with " + c.HC_Name);
+        });
+
+        document.getElementById("apptBtn").addEventListener("click", () => {
+          alert("Schedule appointment with " + c.HC_Name);
+        });
+      } catch (err) {
+        document.getElementById("profile").innerHTML = `<p>⚠️ Could not load profile.</p>`;
+        console.error(err);
+      }
+    }
+
+    loadProfile();
+  </script>
+</body>
+</html>
